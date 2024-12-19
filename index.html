@@ -83,50 +83,6 @@
             background-color: #1e7e34;
         }
 
-        .drag-text {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #888;
-            font-size: 18px;
-            pointer-events: none;
-            z-index: 10;
-            padding: 5px;
-            background-color: rgba(255, 255, 255, 0.7);
-            border-radius: 5px;
-        }
-
-        .info-icon {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 24px;
-            color: #007bff;
-            cursor: pointer;
-        }
-
-        .manual {
-            display: none;
-            position: absolute;
-            top: 50px;
-            left: 20px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            padding: 20px;
-            width: 150px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .manual h3 {
-            margin-top: 0;
-        }
-
-        .manual ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
-
         .clear-button {
             margin-top: 10px;
             background-color: #dc3545;
@@ -141,19 +97,6 @@
             background-color: #c82333;
         }
 
-        .delete-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: rgba(255, 0, 0, 0.7);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        /* Медиазапросы для мобильных устройств */
         @media (max-width: 768px) {
             .image-container {
                 width: 95%;
@@ -174,49 +117,18 @@
                 font-size: 14px;
                 padding: 8px 16px;
             }
-
-            .drag-text {
-                font-size: 14px;
-                top: 5px;
-            }
-
-            .manual {
-                width: 250px;
-                padding: 15px;
-            }
-
-            .clear-button {
-                font-size: 14px;
-                padding: 8px 16px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .info-icon {
-                top: 15px;
-                left: 15px;
-            }
-
-            .manual {
-                width: 200px;
-            }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
-    <div class="info-icon" id="infoIcon">
-        <i class="fas fa-info-circle"></i>
-    </div>
-
-    <!-- Инструкции выше поля -->
     <div id="instructions" style="text-align: center; margin-bottom: 20px;">
         <ul style="list-style-type: none; padding: 0;">
             <li>Перетягніть зображення або натисніть на кнопку, щоб завантажити.</li>
             <li>Допустимі формати зображень: JPEG, PNG.</li>
-            <li>Розмір зображення не повинен перевищувати 2 МБ. Якщо зображення більше, воно буде автоматично зменшене.</li>
-            <li>Після завантаження зображення можна буде завантажити його або всі зображення у форматі ZIP.</li>
+            <li>Розмір зображення не повинен перевищувати 2 МБ.</li>
+            <li>Після завантаження можна зберегти всі зображення у форматі ZIP.</li>
         </ul>
     </div>
 
@@ -226,11 +138,9 @@
     <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple>
     <label for="fileInput">Завантажити зображення</label>
     <br>
-    <a id="downloadButton" class="download-button">Завантажити</a>
+    <a id="downloadButton" class="download-button">Завантажити ZIP</a>
     <button class="clear-button" id="clearButton">Очистити</button>
     <div class="error" id="error"></div>
-
-    <canvas id="canvas" style="display: none;"></canvas>
 
     <script>
         const fileInput = document.getElementById('fileInput');
@@ -238,99 +148,82 @@
         const errorElement = document.getElementById('error');
         const downloadButton = document.getElementById('downloadButton');
         const dragText = document.getElementById('dragText');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
         let processedImages = [];
-        const infoIcon = document.getElementById('infoIcon');
-        const manual = document.getElementById('manual');
-        const clearButton = document.getElementById('clearButton');
 
-        // Функция для обработки файлов
+        function resizeImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function () {
+                    const targetWidth = 800;
+                    const targetHeight = 600;
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+
+                    // Визначення пропорцій
+                    const aspectRatio = img.width / img.height;
+                    const targetRatio = targetWidth / targetHeight;
+
+                    let newWidth, newHeight;
+
+                    if (aspectRatio > targetRatio) {
+                        // Якщо зображення ширше
+                        newWidth = targetWidth;
+                        newHeight = targetWidth / aspectRatio;
+                    } else {
+                        // Якщо зображення вище або квадратне
+                        newWidth = targetHeight * aspectRatio;
+                        newHeight = targetHeight;
+                    }
+
+                    // Очищення полотна для прозорого фону
+                    ctx.clearRect(0, 0, targetWidth, targetHeight);
+
+                    // Розрахунок позиції для центрованого розміщення
+                    const offsetX = (targetWidth - newWidth) / 2;
+                    const offsetY = (targetHeight - newHeight) / 2;
+
+                    // Малювання зображення
+                    ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
+
+                    // Повернення обробленого зображення
+                    callback(canvas.toDataURL('image/png'));
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
         function handleFiles(files) {
             processedImages = [];
             imageContainer.innerHTML = '';
-
             Array.from(files).forEach(file => {
                 if (!['image/jpeg', 'image/png'].includes(file.type)) {
-                    errorElement.textContent = 'Помилка: допустимі формати JPEG або PNG';
+                    errorElement.textContent = 'Помилка: допустимі формати JPEG або PNG.';
                     return;
                 }
 
-                if (file.size > 2 * 1024 * 1024) {
-                    resizeImage(file);
-                } else {
-                    processImage(file);
-                }
+                resizeImage(file, (resizedDataUrl) => {
+                    const imgElement = new Image();
+                    imgElement.src = resizedDataUrl;
+                    imageContainer.appendChild(imgElement);
+                    processedImages.push(resizedDataUrl);
+                    checkDownloadVisibility();
+                });
             });
         }
 
-        // Функция для изменения размера изображений
-        function resizeImage(file) {
-            const img = new Image();
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                img.src = e.target.result;
-                img.onload = () => {
-                    const width = 800;
-                    const height = 600;
-                    
-                    // Получаем пропорции изображения
-                    const scale = Math.min(width / img.width, height / img.height);
-                    const newWidth = img.width * scale;
-                    const newHeight = img.height * scale;
-                    
-                    // Центрируем изображение на канвасе
-                    const xOffset = (width - newWidth) / 2;
-                    const yOffset = (height - newHeight) / 2;
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
-                    const resizedImage = canvas.toDataURL('image/jpeg');
-
-                    processResizedImage(resizedImage);
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function processResizedImage(imageData) {
-            const image = new Image();
-            image.src = imageData;
-            image.onload = () => {
-                const imgElement = document.createElement('img');
-                imgElement.src = image.src;
-                imageContainer.appendChild(imgElement);
-                processedImages.push(imgElement);
-                checkDownloadVisibility();
-            };
-        }
-
-        function processImage(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function() {
-                    const imgElement = document.createElement('img');
-                    imgElement.src = img.src;
-                    imageContainer.appendChild(imgElement);
-                    processedImages.push(imgElement);
-                    checkDownloadVisibility();
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
         function checkDownloadVisibility() {
-            if (processedImages.length > 0) {
-                downloadButton.style.display = 'inline-block';
-            } else {
-                downloadButton.style.display = 'none';
-            }
+            downloadButton.style.display = processedImages.length > 0 ? 'inline-block' : 'none';
         }
 
-        // Обработчик drag & drop
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
         imageContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
             imageContainer.classList.add('drag-over');
@@ -346,47 +239,35 @@
             handleFiles(e.dataTransfer.files);
         });
 
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
+        downloadButton.addEventListener('click', () => {
+            if (processedImages.length === 0) {
+                errorElement.textContent = 'Помилка: немає зображень для завантаження.';
+                return;
+            }
+
+            const zip = new JSZip();
+            processedImages.forEach((dataUrl, index) => {
+                const imgData = dataUrl.split(',')[1];
+                zip.file(`image_${index + 1}.png`, imgData, { base64: true });
+            });
+
+            zip.generateAsync({ type: 'blob' }).then((content) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = 'images.zip';
+                link.click();
+            }).catch((err) => {
+                errorElement.textContent = 'Помилка при створенні ZIP: ' + err.message;
+            });
         });
 
-        // Скрыть инструкции при клике на иконку
-        infoIcon.addEventListener('click', () => {
-            manual.classList.toggle('manual');
-        });
-
-        // Очистка
-        clearButton.addEventListener('click', () => {
+        document.getElementById('clearButton').addEventListener('click', () => {
             processedImages = [];
             imageContainer.innerHTML = '';
             downloadButton.style.display = 'none';
             errorElement.textContent = '';
         });
-
-        // Завантаження ZIP
-        downloadButton.addEventListener('click', () => {
-            const zip = new JSZip();
-            processedImages.forEach((image, index) => {
-                const imgData = image.src.split(',')[1];
-                zip.file(`image_${index + 1}.jpg`, imgData, { base64: true });
-            });
-            zip.generateAsync({ type: 'blob' }).then(function(content) {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = 'images.zip';
-                link.click();
-            });
-        });
     </script>
-
-    <div id="manual" class="manual">
-        <h3>Інструкції:</h3>
-        <ul>
-            <li>Перетягніть зображення сюди або натисніть на кнопку, щоб завантажити.</li>
-            <li>Вибір кількох зображень одночасно підтримується.</li>
-            <li>Зображення будуть відображені після завантаження.</li>
-        </ul>
-    </div>
 
 </body>
 </html>
