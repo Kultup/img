@@ -114,25 +114,17 @@
             background-color: #fff;
             border: 1px solid #ccc;
             padding: 20px;
-            width: 250px;
+            width: 150px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            z-index: 100;
         }
 
         .manual h3 {
             margin-top: 0;
-            font-size: 18px;
-            color: #333;
         }
 
         .manual ul {
             list-style-type: disc;
             padding-left: 20px;
-        }
-
-        .manual li {
-            font-size: 14px;
-            color: #555;
         }
 
         .clear-button {
@@ -210,7 +202,6 @@
             }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
@@ -280,107 +271,120 @@
             reader.onload = (e) => {
                 img.src = e.target.result;
                 img.onload = () => {
-                    const width = img.width;
-                    const height = img.height;
+                    const width = 800;
+                    const height = 600;
+                    
+                    // Получаем пропорции изображения
+                    const scale = Math.min(width / img.width, height / img.height);
+                    const newWidth = img.width * scale;
+                    const newHeight = img.height * scale;
+                    
+                    // Центрируем изображение на канвасе
+                    const xOffset = (width - newWidth) / 2;
+                    const yOffset = (height - newHeight) / 2;
 
-                    // Пропорциональное уменьшение
-                    const scale = Math.min(200 / width, 150 / height);
-                    const newWidth = width * scale;
-                    const newHeight = height * scale;
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
+                    const resizedImage = canvas.toDataURL('image/jpeg');
 
-                    canvas.width = newWidth;
-                    canvas.height = newHeight;
-                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
-                    const resizedDataUrl = canvas.toDataURL(file.type);
-
-                    const newImage = new Image();
-                    newImage.src = resizedDataUrl;
-                    processedImages.push(resizedDataUrl);
-                    imageContainer.appendChild(newImage);
-                    downloadButton.style.display = 'inline-block';
+                    processResizedImage(resizedImage);
                 };
             };
             reader.readAsDataURL(file);
         }
 
-        // Функция для добавления изображения на страницу
+        // Функция для обработки изображения
         function processImage(file) {
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = function (e) {
                 const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    const newImage = new Image();
-                    newImage.src = e.target.result;
-                    processedImages.push(e.target.result);
-                    imageContainer.appendChild(newImage);
-                    downloadButton.style.display = 'inline-block';
+                img.onload = function () {
+                    const width = 800;
+                    const height = 600;
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Устанавливаем размеры
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // Масштабируем изображение
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const dataURL = canvas.toDataURL('image/jpeg');
+                    processedImages.push(dataURL);
+                    displayImage(dataURL);
                 };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        // Обработка событий перетаскивания
-        imageContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
+        // Функция для отображения изображений
+        function displayImage(dataURL) {
+            const img = document.createElement('img');
+            img.src = dataURL;
+            imageContainer.appendChild(img);
+        }
+
+        // Обработчик для загрузки файлов
+        fileInput.addEventListener('change', (event) => {
+            handleFiles(event.target.files);
+        });
+
+        // Обработчик для перетаскивания
+        imageContainer.addEventListener('dragover', (event) => {
+            event.preventDefault();
             imageContainer.classList.add('drag-over');
-            dragText.style.display = 'block';
         });
 
         imageContainer.addEventListener('dragleave', () => {
             imageContainer.classList.remove('drag-over');
-            dragText.style.display = 'none';
         });
 
-        imageContainer.addEventListener('drop', (e) => {
-            e.preventDefault();
+        imageContainer.addEventListener('drop', (event) => {
+            event.preventDefault();
             imageContainer.classList.remove('drag-over');
-            dragText.style.display = 'none';
-            handleFiles(e.dataTransfer.files);
+            handleFiles(event.dataTransfer.files);
         });
 
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
-
-        // Загрузка изображений
+        // Обработчик для кнопки загрузки
         downloadButton.addEventListener('click', () => {
             const zip = new JSZip();
-            processedImages.forEach((imageData, index) => {
-                zip.file(`image${index + 1}.jpg`, imageData.split(',')[1], { base64: true });
+            processedImages.forEach((image, index) => {
+                zip.file(`image_${index + 1}.jpg`, image.split('base64,')[1], { base64: true });
             });
-            zip.generateAsync({ type: 'blob' }).then((content) => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(content);
-                link.download = 'images.zip';
-                link.click();
-            });
+            zip.generateAsync({ type: 'blob' })
+                .then(function (content) {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = 'images.zip';
+                    link.click();
+                });
         });
 
         // Очистка
         clearButton.addEventListener('click', () => {
             imageContainer.innerHTML = '';
             processedImages = [];
-            downloadButton.style.display = 'none';
             errorElement.textContent = '';
+            downloadButton.style.display = 'none';
         });
 
-        // Показываем руководство при клике на иконку
+        // Информация о загрузке
         infoIcon.addEventListener('click', () => {
-            manual.style.display = manual.style.display === 'block' ? 'none' : 'block';
+            manual.classList.toggle('manual');
         });
-    </script>
 
-    <!-- Инструкции -->
-    <div class="manual" id="manual">
-        <h3>Інструкція</h3>
-        <ul>
-            <li>Перетягніть зображення у відповідне поле або виберіть файл через кнопку.</li>
-            <li>Можна завантажувати кілька файлів одночасно.</li>
-            <li>Кожне зображення буде зменшено, якщо його розмір перевищує 2 МБ.</li>
-            <li>Для завантаження усіх зображень натисніть кнопку "Завантажити".</li>
-        </ul>
-    </div>
+        // Отображение кнопки загрузки, если есть изображения
+        function processResizedImage(imageData) {
+            processedImages.push(imageData);
+            displayImage(imageData);
+            downloadButton.style.display = processedImages.length > 0 ? 'block' : 'none';
+        }
+
+    </script>
 
 </body>
 </html>
