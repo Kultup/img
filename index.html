@@ -294,48 +294,45 @@
             reader.readAsDataURL(file);
         }
 
-        // Функция для обработки изображения
+        function processResizedImage(imageData) {
+            const image = new Image();
+            image.src = imageData;
+            image.onload = () => {
+                const imgElement = document.createElement('img');
+                imgElement.src = image.src;
+                imageContainer.appendChild(imgElement);
+                processedImages.push(imgElement);
+                checkDownloadVisibility();
+            };
+        }
+
         function processImage(file) {
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = function(e) {
                 const img = new Image();
-                img.onload = function () {
-                    const width = 800;
-                    const height = 600;
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    // Устанавливаем размеры
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    // Масштабируем изображение
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const dataURL = canvas.toDataURL('image/jpeg');
-                    processedImages.push(dataURL);
-                    displayImage(dataURL);
-                };
                 img.src = e.target.result;
+                img.onload = function() {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img.src;
+                    imageContainer.appendChild(imgElement);
+                    processedImages.push(imgElement);
+                    checkDownloadVisibility();
+                };
             };
             reader.readAsDataURL(file);
         }
 
-        // Функция для отображения изображений
-        function displayImage(dataURL) {
-            const img = document.createElement('img');
-            img.src = dataURL;
-            imageContainer.appendChild(img);
+        function checkDownloadVisibility() {
+            if (processedImages.length > 0) {
+                downloadButton.style.display = 'inline-block';
+            } else {
+                downloadButton.style.display = 'none';
+            }
         }
 
-        // Обработчик для загрузки файлов
-        fileInput.addEventListener('change', (event) => {
-            handleFiles(event.target.files);
-        });
-
-        // Обработчик для перетаскивания
-        imageContainer.addEventListener('dragover', (event) => {
-            event.preventDefault();
+        // Обработчик drag & drop
+        imageContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
             imageContainer.classList.add('drag-over');
         });
 
@@ -343,48 +340,53 @@
             imageContainer.classList.remove('drag-over');
         });
 
-        imageContainer.addEventListener('drop', (event) => {
-            event.preventDefault();
+        imageContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
             imageContainer.classList.remove('drag-over');
-            handleFiles(event.dataTransfer.files);
+            handleFiles(e.dataTransfer.files);
         });
 
-        // Обработчик для кнопки загрузки
-        downloadButton.addEventListener('click', () => {
-            const zip = new JSZip();
-            processedImages.forEach((image, index) => {
-                zip.file(`image_${index + 1}.jpg`, image.split('base64,')[1], { base64: true });
-            });
-            zip.generateAsync({ type: 'blob' })
-                .then(function (content) {
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(content);
-                    link.download = 'images.zip';
-                    link.click();
-                });
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
         });
 
-        // Очистка
-        clearButton.addEventListener('click', () => {
-            imageContainer.innerHTML = '';
-            processedImages = [];
-            errorElement.textContent = '';
-            downloadButton.style.display = 'none';
-        });
-
-        // Информация о загрузке
+        // Скрыть инструкции при клике на иконку
         infoIcon.addEventListener('click', () => {
             manual.classList.toggle('manual');
         });
 
-        // Отображение кнопки загрузки, если есть изображения
-        function processResizedImage(imageData) {
-            processedImages.push(imageData);
-            displayImage(imageData);
-            downloadButton.style.display = processedImages.length > 0 ? 'block' : 'none';
-        }
+        // Очистка
+        clearButton.addEventListener('click', () => {
+            processedImages = [];
+            imageContainer.innerHTML = '';
+            downloadButton.style.display = 'none';
+            errorElement.textContent = '';
+        });
 
+        // Завантаження ZIP
+        downloadButton.addEventListener('click', () => {
+            const zip = new JSZip();
+            processedImages.forEach((image, index) => {
+                const imgData = image.src.split(',')[1];
+                zip.file(`image_${index + 1}.jpg`, imgData, { base64: true });
+            });
+            zip.generateAsync({ type: 'blob' }).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = 'images.zip';
+                link.click();
+            });
+        });
     </script>
+
+    <div id="manual" class="manual">
+        <h3>Інструкції:</h3>
+        <ul>
+            <li>Перетягніть зображення сюди або натисніть на кнопку, щоб завантажити.</li>
+            <li>Вибір кількох зображень одночасно підтримується.</li>
+            <li>Зображення будуть відображені після завантаження.</li>
+        </ul>
+    </div>
 
 </body>
 </html>
