@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Завантаження зображень</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-container {
+            width: 80%;
+            max-width: 800px;
+            height: 600px;
+            border: 2px dashed #ccc;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+
+        .image-container.drag-over {
+            border-color: #007bff;
+            background-color: #e6f7ff;
+        }
+
+        .image-container img {
+            object-fit: cover;
+            width: 100%;
+            height: auto;
+            max-width: 200px;
+            max-height: 150px;
+            margin: 5px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        label:hover {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .download-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: none;
+        }
+
+        .download-button:hover {
+            background-color: #1e7e34;
+        }
+
+        .drag-text {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #888;
+            font-size: 18px;
+            pointer-events: none;
+            z-index: 10;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 5px;
+        }
+
+        .info-icon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .manual {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 250px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .manual h3 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .manual ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+
+        .manual li {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .clear-button {
+            margin-top: 10px;
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Медиазапросы для мобильных устройств */
+        @media (max-width: 768px) {
+            .image-container {
+                width: 95%;
+                height: auto;
+            }
+
+            .image-container img {
+                max-width: 150px;
+                max-height: 120px;
+            }
+
+            label {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .download-button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .drag-text {
+                font-size: 14px;
+                top: 5px;
+            }
+
+            .manual {
+                width: 250px;
+                padding: 15px;
+            }
+
+            .clear-button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .info-icon {
+                top: 15px;
+                left: 15px;
+            }
+
+            .manual {
+                width: 200px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="info-icon" id="infoIcon">
+        <i class="fas fa-info-circle"></i>
+    </div>
+
+    <!-- Инструкции выше поля -->
+    <div id="instructions" style="text-align: center; margin-bottom: 20px;">
+        <ul style="list-style-type: none; padding: 0;">
+            <li>Перетягніть зображення або натисніть на кнопку, щоб завантажити.</li>
+            <li>Допустимі формати зображень: JPEG, PNG.</li>
+            <li>Розмір зображення не повинен перевищувати 2 МБ. Якщо зображення більше, воно буде автоматично зменшене.</li>
+            <li>Після завантаження зображення можна буде завантажити його або всі зображення у форматі ZIP.</li>
+        </ul>
+    </div>
+
+    <div class="image-container" id="imageContainer">
+        <p class="drag-text" id="dragText">Перетягніть сюди зображення або натисніть, щоб вибрати</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple>
+    <label for="fileInput">Завантажити зображення</label>
+    <br>
+    <a id="downloadButton" class="download-button">Завантажити</a>
+    <button class="clear-button" id="clearButton">Очистити</button>
+    <div class="error" id="error"></div>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const imageContainer = document.getElementById('imageContainer');
+        const errorElement = document.getElementById('error');
+        const downloadButton = document.getElementById('downloadButton');
+        const dragText = document.getElementById('dragText');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let processedImages = [];
+        const infoIcon = document.getElementById('infoIcon');
+        const manual = document.getElementById('manual');
+        const clearButton = document.getElementById('clearButton');
+
+        // Функция для обработки файлов
+        function handleFiles(files) {
+            processedImages = [];
+            imageContainer.innerHTML = '';
+
+            Array.from(files).forEach(file => {
+                if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                    errorElement.textContent = 'Помилка: допустимі формати JPEG або PNG';
+                    return;
+                }
+
+                if (file.size > 2 * 1024 * 1024) {
+                    resizeImage(file);
+                } else {
+                    processImage(file);
+                }
+            });
+        }
+
+        // Функция для изменения размера изображений
+        function resizeImage(file) {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+                img.onload = () => {
+                    const width = img.width;
+                    const height = img.height;
+
+                    // Пропорциональное уменьшение
+                    const scale = Math.min(200 / width, 150 / height);
+                    const newWidth = width * scale;
+                    const newHeight = height * scale;
+
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                    const resizedDataUrl = canvas.toDataURL(file.type);
+
+                    const newImage = new Image();
+                    newImage.src = resizedDataUrl;
+                    processedImages.push(resizedDataUrl);
+                    imageContainer.appendChild(newImage);
+                    downloadButton.style.display = 'inline-block';
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Функция для добавления изображения на страницу
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const newImage = new Image();
+                    newImage.src = e.target.result;
+                    processedImages.push(e.target.result);
+                    imageContainer.appendChild(newImage);
+                    downloadButton.style.display = 'inline-block';
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Обработка событий перетаскивания
+        imageContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageContainer.classList.add('drag-over');
+            dragText.style.display = 'block';
+        });
+
+        imageContainer.addEventListener('dragleave', () => {
+            imageContainer.classList.remove('drag-over');
+            dragText.style.display = 'none';
+        });
+
+        imageContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageContainer.classList.remove('drag-over');
+            dragText.style.display = 'none';
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // Загрузка изображений
+        downloadButton.addEventListener('click', () => {
+            const zip = new JSZip();
+            processedImages.forEach((imageData, index) => {
+                zip.file(`image${index + 1}.jpg`, imageData.split(',')[1], { base64: true });
+            });
+            zip.generateAsync({ type: 'blob' }).then((content) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = 'images.zip';
+                link.click();
+            });
+        });
+
+        // Очистка
+        clearButton.addEventListener('click', () => {
+            imageContainer.innerHTML = '';
+            processedImages = [];
+            downloadButton.style.display = 'none';
+            errorElement.textContent = '';
+        });
+
+        // Показываем руководство при клике на иконку
+        infoIcon.addEventListener('click', () => {
+            manual.style.display = manual.style.display === 'block' ? 'none' : 'block';
+        });
+    </script>
+
+    <!-- Инструкции -->
+    <div class="manual" id="manual">
+        <h3>Інструкція</h3>
+        <ul>
+            <li>Перетягніть зображення у відповідне поле або виберіть файл через кнопку.</li>
+            <li>Можна завантажувати кілька файлів одночасно.</li>
+            <li>Кожне зображення буде зменшено, якщо його розмір перевищує 2 МБ.</li>
+            <li>Для завантаження усіх зображень натисніть кнопку "Завантажити".</li>
+        </ul>
+    </div>
+
+</body>
+</html>
