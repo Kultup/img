@@ -150,12 +150,58 @@
         const dragText = document.getElementById('dragText');
         let processedImages = [];
 
+        // Функція для обрізки зображення з прозорим фоном
+        function cropImage(image) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx.drawImage(image, 0, 0);
+
+            const data = ctx.getImageData(0, 0, image.width, image.height);
+            const pixels = data.data;
+
+            let top = image.height, bottom = 0, left = image.width, right = 0;
+
+            // Найдемо крайні не прозорі пікселі
+            for (let y = 0; y < image.height; y++) {
+                for (let x = 0; x < image.width; x++) {
+                    const index = (y * image.width + x) * 4;
+                    const alpha = pixels[index + 3]; // Перевірка прозорості
+
+                    if (alpha > 0) {
+                        if (y < top) top = y;
+                        if (y > bottom) bottom = y;
+                        if (x < left) left = x;
+                        if (x > right) right = x;
+                    }
+                }
+            }
+
+            // Обрізаємо зображення до знайдених меж
+            const width = right - left;
+            const height = bottom - top;
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.clearRect(0, 0, width, height); // Очистка області перед малюванням
+            ctx.drawImage(image, left, top, width, height, 0, 0, width, height);
+
+            return canvas.toDataURL('image/png'); // Повертаємо зображення з прозорим фоном
+        }
+
+        // Функція для ресайзу зображення з прозорим фоном
         function resizeImage(file, callback) {
             const reader = new FileReader();
             reader.onload = function (e) {
                 const img = new Image();
                 img.src = e.target.result;
                 img.onload = function () {
+                    // Обрізаємо зображення з прозорим фоном
+                    const croppedDataUrl = cropImage(img);
+
+                    // Ресайзимо обрізане зображення
                     const targetWidth = 800;
                     const targetHeight = 600;
 
@@ -164,34 +210,28 @@
                     canvas.width = targetWidth;
                     canvas.height = targetHeight;
 
-                    // Визначення пропорцій
-                    const aspectRatio = img.width / img.height;
-                    const targetRatio = targetWidth / targetHeight;
+                    const imgObj = new Image();
+                    imgObj.src = croppedDataUrl;
+                    imgObj.onload = function() {
+                        const aspectRatio = imgObj.width / imgObj.height;
+                        const targetRatio = targetWidth / targetHeight;
+                        let newWidth, newHeight;
 
-                    let newWidth, newHeight;
+                        if (aspectRatio > targetRatio) {
+                            newWidth = targetWidth;
+                            newHeight = targetWidth / aspectRatio;
+                        } else {
+                            newWidth = targetHeight * aspectRatio;
+                            newHeight = targetHeight;
+                        }
 
-                    if (aspectRatio > targetRatio) {
-                        // Якщо зображення ширше
-                        newWidth = targetWidth;
-                        newHeight = targetWidth / aspectRatio;
-                    } else {
-                        // Якщо зображення вище або квадратне
-                        newWidth = targetHeight * aspectRatio;
-                        newHeight = targetHeight;
-                    }
+                        const offsetX = (targetWidth - newWidth) / 2;
+                        const offsetY = (targetHeight - newHeight) / 2;
 
-                    // Очищення полотна для прозорого фону
-                    ctx.clearRect(0, 0, targetWidth, targetHeight);
-
-                    // Розрахунок позиції для центрованого розміщення
-                    const offsetX = (targetWidth - newWidth) / 2;
-                    const offsetY = (targetHeight - newHeight) / 2;
-
-                    // Малювання зображення
-                    ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-
-                    // Повернення обробленого зображення
-                    callback(canvas.toDataURL('image/png'));
+                        ctx.clearRect(0, 0, targetWidth, targetHeight);
+                        ctx.drawImage(imgObj, offsetX, offsetY, newWidth, newHeight);
+                        callback(canvas.toDataURL('image/png')); // Повертаємо зображення з прозорим фоном
+                    };
                 };
             };
             reader.readAsDataURL(file);
