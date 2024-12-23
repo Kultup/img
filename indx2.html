@@ -8,9 +8,10 @@
 </head>
 <body>
     <div id="formatPage">
+        <button class="format-button">Завантажити зображення</button>
         <h1>Змінити формат зображення</h1>
         <p>Завантажте зображення, виберіть бажаний формат і конвертуйте.</p>
-        <div class="upload-container">
+        <div class="upload-container" id="upload-container">
             <input type="file" id="imageInput" accept="image/*" multiple>
             <p id="formatInfo" style="margin-top: 10px;">Формат фото який загружений: <span id="currentFormat">невідомий</span></p>
             <select id="formatSelect">
@@ -22,6 +23,8 @@
                 <option value="tiff">TIFF</option>
                 <option value="ico">ICO</option>
             </select>
+            <label for="quality">Якість (0-100):</label>
+            <input type="range" id="quality" name="quality" min="0" max="100" value="80">
             <br>
             <button id="convertButton">Конвертувати</button>
             <br>
@@ -29,6 +32,8 @@
         </div>
         <div id="previewContainer"></div>
         <div id="downloadLinksContainer"></div>
+        <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        <p id="progressText"></p>
     </div>
     <script src="scripts.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>

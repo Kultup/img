@@ -1,108 +1,152 @@
-/* Загальні стилі */
+/* Общие стили */
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
+    background-color: #f4f4f4;
     margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
-}
-
-#formatPage {
-    max-width: 900px;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
     padding: 20px;
 }
 
-/* Контейнер для завантаження файлів */
-.upload-container {
-    margin: 20px 0;
-}
-#imageInput, #formatSelect, #convertButton {
-    margin: 10px;
-    padding: 10px;
-    font-size: 16px;
+#formatPage {
     width: 100%;
-    max-width: 300px;
-    box-sizing: border-box;
+    max-width: 800px;
+    margin-top: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
-#convertButton {
+h1 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.upload-container {
+    margin-bottom: 20px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+label {
     background-color: #007bff;
     color: white;
-    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
-#convertButton:hover {
+label:hover {
     background-color: #0056b3;
 }
 
-/* Інформація про формат зображення */
-#formatInfo {
-    margin-top: 10px;
-}
-
-#currentFormat {
-    font-weight: bold;
-    color: #007bff;
-}
-
-/* Попередній перегляд зображення */
-#previewContainer img.thumbnail {
-    max-width: 100px; /* Задаємо максимальний розмір мініатюр */
-    height: auto;
+select {
+    padding: 8px;
+    font-size: 16px;
     margin-top: 10px;
     border: 1px solid #ccc;
-    border-radius: 10px;
-}
-
-.image-preview {
-    display: inline-block;
-    margin: 10px;
-}
-
-.image-preview h4 {
-    margin-top: 0;
-    font-size: 14px;
-}
-
-.remove-file-btn {
-    margin-top: 5px;
-    padding: 5px 10px;
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    cursor: pointer;
     border-radius: 5px;
 }
 
-.remove-file-btn:hover {
-    background-color: #cc0000;
+button {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    border: none;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
-/* Посилання для завантаження */
-.download-link {
-    display: inline-block;
+button:hover {
+    background-color: #218838;
+}
+
+#formatInfo {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #555;
+}
+
+#previewContainer,
+#downloadLinksContainer {
     margin-top: 20px;
+}
+
+/* Стили для кнопок очистки */
+#clearButton {
+    background-color: #dc3545;
+    margin-top: 10px;
+}
+
+#clearButton:hover {
+    background-color: #c82333;
+}
+
+/* Стили для кнопки изменения формата */
+.format-button {
+    background-color: #6c757d;
+    border: none;
+    color: white;
     padding: 10px 20px;
-    background-color: #007bff;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+.format-button:hover {
+    background-color: #5a6268;
+}
+
+.format-button a {
     color: white;
     text-decoration: none;
-    border-radius: 5px;
+    display: block;
+    font-size: 16px;
 }
 
-.download-link:hover {
-    background-color: #0056b3;
+.format-button a:hover {
+    text-decoration: underline;
 }
 
-/* Адаптивність для мобільних пристроїв */
+/* Адаптивный дизайн */
 @media (max-width: 768px) {
-    #imageInput, #formatSelect, #convertButton {
-        max-width: 100%;
+    h1 {
+        font-size: 24px;
+    }
+
+    p {
         font-size: 14px;
     }
 
-    .download-link {
-        padding: 8px 16px;
+    input[type="file"],
+    select,
+    button,
+    label {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    #formatInfo {
+        font-size: 12px;
     }
 }
