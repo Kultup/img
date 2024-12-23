@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертація зображення</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="formatPage">
+        <h1>Змінити формат зображення</h1>
+        <p>Завантажте зображення, виберіть бажаний формат і конвертуйте.</p>
+        <div class="upload-container">
+            <input type="file" id="imageInput" accept="image/*" multiple>
+            <p id="formatInfo" style="margin-top: 10px;">Формат фото який загружений: <span id="currentFormat">невідомий</span></p>
+            <select id="formatSelect">
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="webp">WEBP</option>
+                <option value="bmp">BMP</option>
+                <option value="gif">GIF</option>
+                <option value="tiff">TIFF</option>
+                <option value="ico">ICO</option>
+            </select>
+            <br>
+            <button id="convertButton">Конвертувати</button>
+            <br>
+            <button id="clearButton">Очистити всі файли</button>
+        </div>
+        <div id="previewContainer"></div>
+        <div id="downloadLinksContainer"></div>
+    </div>
+    <script src="scripts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</body>
+</html>

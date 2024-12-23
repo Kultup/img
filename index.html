@@ -97,6 +97,33 @@
             background-color: #c82333;
         }
 
+        .format-button {
+            background-color: #6c757d;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .format-button:hover {
+            background-color: #5a6268;
+        }
+
+        .format-button a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            font-size: 16px;
+        }
+
+        .format-button a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .image-container {
                 width: 95%;
@@ -117,12 +144,23 @@
                 font-size: 14px;
                 padding: 8px 16px;
             }
+
+            .format-button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .format-button a {
+                font-size: 14px;
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-
+    <button class="format-button">
+        <a class="next_pages" href="indx2.html">Змінити формат картинки</a>
+    </button>
     <div id="instructions" style="text-align: center; margin-bottom: 20px;">
         <ul style="list-style-type: none; padding: 0;">
             <li>Перетягніть зображення або натисніть на кнопку, щоб завантажити.</li>
@@ -257,7 +295,7 @@
         }
 
         function checkDownloadVisibility() {
-            downloadButton.style.display = processedImages.length > 0 ? 'inline-block' : 'none';
+            downloadButton.style.display = processedImages.length > 0 ? ''inline-block' : 'none';
         }
 
         fileInput.addEventListener('change', (e) => {

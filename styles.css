@@ -1,0 +1,108 @@
+/* Загальні стилі */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+#formatPage {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Контейнер для завантаження файлів */
+.upload-container {
+    margin: 20px 0;
+}
+#imageInput, #formatSelect, #convertButton {
+    margin: 10px;
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 300px;
+    box-sizing: border-box;
+}
+
+#convertButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#convertButton:hover {
+    background-color: #0056b3;
+}
+
+/* Інформація про формат зображення */
+#formatInfo {
+    margin-top: 10px;
+}
+
+#currentFormat {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Попередній перегляд зображення */
+#previewContainer img.thumbnail {
+    max-width: 100px; /* Задаємо максимальний розмір мініатюр */
+    height: auto;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+.image-preview {
+    display: inline-block;
+    margin: 10px;
+}
+
+.image-preview h4 {
+    margin-top: 0;
+    font-size: 14px;
+}
+
+.remove-file-btn {
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.remove-file-btn:hover {
+    background-color: #cc0000;
+}
+
+/* Посилання для завантаження */
+.download-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.download-link:hover {
+    background-color: #0056b3;
+}
+
+/* Адаптивність для мобільних пристроїв */
+@media (max-width: 768px) {
+    #imageInput, #formatSelect, #convertButton {
+        max-width: 100%;
+        font-size: 14px;
+    }
+
+    .download-link {
+        padding: 8px 16px;
+    }
+}
